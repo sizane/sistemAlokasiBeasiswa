@@ -5,5 +5,5 @@
     src="https://www.canva.com/design/DAHLeiZkiFk/Ocp_6VF-xpIqvgW9SI-11g/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen">
   </iframe>
 </div>
-<a href="https:&#x2F;&#x2F;www.canva.com&#x2F;design&#x2F;DAHLeiZkiFk&#x2F;Ocp_6VF-xpIqvgW9SI-11g&#x2F;view?utm_content=DAHLeiZkiFk&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link" target="_blank" rel="noopener">
+<a href="https:&#x2F;&#x2F;www.canva.com&#x2F;design&#x2F;DAHLeiZkiFk&#x2F;Ocp_6VF-xpIqvgW9SI-11g&#x2F;view?utm_content=DAHLeiZkiFk&amp;utm_campaign=designshare&amp;utm_medium=embeds&amp;utm_source=link" target="_blank" rel="noopener"></a>
 # projek_sda_sistemAlokasiBeasiswaDanDanaBantuanKampus
