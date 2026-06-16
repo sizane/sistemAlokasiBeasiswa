@@ -266,7 +266,7 @@ public class sistemAlokasiBeasiswa {
                     heapAlokasi.insert(m);
 
                 } catch (Exception e) {
-                    System.out.println("⚠️ Skip baris bermasalah pada data: " + data[0] + " | Error: " + e.getMessage());
+                    System.out.println("Skip baris bermasalah pada data: " + data[0] + " | Error: " + e.getMessage());
                 }
             }
 
@@ -285,11 +285,4 @@ public class sistemAlokasiBeasiswa {
         }
     }
 }
-/* 
-Cunny Love is cunny life, 
-one day I hope for a cunny wife as I arise in the morning I gaze upon my cunny wife yaninng, 
-with eyes like dazzling gems, and gems 10/10. 
-All I know all is well in life when I have myself a cunny wife
-*/
-
-/*dawg */
+// tolong dikondisikan
