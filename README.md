@@ -3,4 +3,5 @@
 </div>
 # Project Mata Kuliah Struktur Data dan Algoritma tentang Sistem Pengalokasian Beasiswa
 ⠀⠀ 
+
 running this using vsc extension wont work, so stick w/ javac [] and then java []
