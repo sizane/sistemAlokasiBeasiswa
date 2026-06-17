@@ -281,3 +281,4 @@ public class sistemAlokasiBeasiswa {
         }
     }
 }
+// tolong dikondisikan
