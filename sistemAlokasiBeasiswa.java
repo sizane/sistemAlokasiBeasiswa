@@ -9,7 +9,7 @@ import java.util.List;
 
 public class sistemAlokasiBeasiswa {
 
-    private static final String FILE_PATH = "etc\\bis.csv"; 
+    private static final String FILE_PATH = "etc\\bis_update.csv"; 
 
     // Class representasi data Mahasiswa
     static class Mahasiswa implements Comparable<Mahasiswa> {
@@ -44,12 +44,12 @@ public class sistemAlokasiBeasiswa {
             // Perhitungan Tambahan: Rasio Beban Finansial
             this.rasioBeban = (tanggungan > 0) ? (this.rasioUkt / tanggungan) : 0;
 
-            // 1. Hitung Komponen Finansial (Maks 60 Poin)
+            // 1. Hitung Komponen Finansial - 60
             this.skorFinansial = hitungSkorRasioUkt(this.rasioUkt) + 
                                  hitungSkorGolUkt(this.golUkt) + 
                                  hitungSkorTanggungan(this.tanggungan);
             
-            // 2. Hitung Komponen Akademik & Non-Akademik (Maks 40 Poin)
+            // 2. Hitung Komponen Akademik & Non-Akademik - 40
             this.skorAkademik = hitungSkorIpk(this.ipk) + 
                                 hitungSkorOrganisasi(this.levelJabatan) + 
                                 hitungSkorPrestasiAkumulasi(p1, p2, p3);
@@ -102,7 +102,7 @@ public class sistemAlokasiBeasiswa {
 
             // Urutkan dari prestasi dengan nilai tertinggi
             Collections.sort(skorDasar, Collections.reverseOrder());
-
+            
             double total = (skorDasar.get(0) * 1.0) + (skorDasar.get(1) * 0.3) + (skorDasar.get(2) * 0.1);
             
             // Pembulatan ke integer terdekat dengan limit cap 8 poin
@@ -123,7 +123,7 @@ public class sistemAlokasiBeasiswa {
                 if (pStr.contains("1")) return 8;
                 if (pStr.contains("2")) return 7;
                 if (pStr.contains("3")) return 6;
-                return 4; // Fallback
+                return 4; 
             } else if (pStr.contains("nasional")) {
                 if (pStr.contains("harapan")) return 4;
                 if (pStr.contains("finalis") || pStr.contains("peserta")) return 3;
@@ -223,8 +223,9 @@ public class sistemAlokasiBeasiswa {
 
     public static void main(String[] args) {
         MaxHeap heapAlokasi = new MaxHeap();
+        List<String> dataBermasalah = new ArrayList<>(); // Menampung log data tidak valid
         
-        System.out.println("Executing Max Heap Allocation Engine using '" + FILE_PATH + "'...");
+        System.out.println("Executing Max Heap Allocation Engine menggunakan '" + FILE_PATH + "'...\n");
 
         String line = "";
         String csvSplitBy = ","; 
@@ -238,31 +239,81 @@ public class sistemAlokasiBeasiswa {
                 if (line.trim().isEmpty()) continue;
 
                 String[] data = line.split(csvSplitBy, -1);
-                if (data.length < 7) continue;
+                String namaKandidat = (data.length > 0 && !data[0].trim().isEmpty()) ? data[0].trim() : "Tanpa Nama";
+
+                if (data.length < 7) {
+                    dataBermasalah.add(String.format("Mahasiswa: %-14s | Batalkan: Kolom data kurang/tidak lengkap.", namaKandidat));
+                    continue;
+                }
 
                 try {
                     String nama = data[0].trim();
                     long penghasilan = Long.parseLong(data[1].trim());
                     long besaranUkt = Long.parseLong(data[2].trim());
                     
-                    // Format Integer untuk Golongan UKT, Tanggungan, dan Organisasi
-                    int golUkt = Integer.parseInt(data[3].trim());
+                    // Mengabaikan kolom "UKT" (data[3]) dan mengklasifikasikan secara manual
+                    // berdasarkan nominal besaran UKT resmi Sarjana Sains Data UNS (Kelompok 1 - 8)
+                    int golUkt = -1;
+                    if (besaranUkt == 500000) {
+                        golUkt = 1;
+                    } else if (besaranUkt == 1000000) {
+                        golUkt = 2;
+                    } else if (besaranUkt == 3325000) {
+                        golUkt = 3;
+                    } else if (besaranUkt == 5475000) {
+                        golUkt = 4;
+                    } else if (besaranUkt == 6075000) {
+                        golUkt = 5;
+                    } else if (besaranUkt == 6685000) {
+                        golUkt = 6;
+                    } else if (besaranUkt == 7356000) {
+                        golUkt = 7;
+                    } else if (besaranUkt == 10117000) {
+                        golUkt = 8;
+                    }
+
                     int tanggungan = Integer.parseInt(data[4].trim());
                     int levelJabatan = Integer.parseInt(data[5].trim()); 
                     
                     double ipk = Double.parseDouble(data[6].trim());
                     
+                    // --- VALIDASI PARAMETER INPUT ANOMALI ---
+                    if (penghasilan < 0) {
+                        throw new IllegalArgumentException("Penghasilan tidak boleh bernilai negatif.");
+                    }
+                    if (besaranUkt <= 0) {
+                        throw new IllegalArgumentException("Besaran UKT harus lebih besar dari 0.");
+                    }
+                    if (tanggungan < 0) {
+                        throw new IllegalArgumentException("Jumlah tanggungan tidak boleh bernilai negatif.");
+                    }
+                    if (ipk < 0.0 || ipk > 4.0) {
+                        throw new IllegalArgumentException("IPK tidak valid (Harus berada di rentang 0.0 - 4.0).");
+                    }
+                    if (levelJabatan < 0 || levelJabatan > 4) {
+                        throw new IllegalArgumentException("Level jabatan organisasi tidak valid (Harus rentang 0 - 4).");
+                    }
+                    
+                    // Pencegahan: Masukkan ke list anomali jika golongan UKT tidak valid / tidak sesuai acuan pilihan UKT Sains Data UNS
+                    if (golUkt == -1) {
+                        throw new IllegalArgumentException("Besaran UKT (" + besaranUkt + ") tidak terdaftar dalam pilihan UKT Sains Data UNS.");
+                    }
+                    
                     // Deteksi kolom prestasi & handle "null" sebagai "Tidak ada prestasi"
                     String p1 = (data.length > 7 && !data[7].trim().isEmpty()) ? data[7].trim() : "Tidak ada prestasi";
                     String p2 = (data.length > 8 && !data[8].trim().isEmpty()) ? data[8].trim() : "Tidak ada prestasi";
                     String p3 = (data.length > 9 && !data[9].trim().isEmpty()) ? data[9].trim() : "Tidak ada prestasi";
-
+                    
                     // Instansiasi objek Mahasiswa dan masukkan ke Max Heap
                     Mahasiswa m = new Mahasiswa(nama, penghasilan, besaranUkt, golUkt, tanggungan, levelJabatan, ipk, p1, p2, p3);
                     heapAlokasi.insert(m);
 
+                } catch (NumberFormatException e) {
+                    dataBermasalah.add(String.format("Mahasiswa: %-14s | Batalkan: Kesalahan format angka (Spasi kosong / karakter non-angka).", namaKandidat));
+                } catch (IllegalArgumentException e) {
+                    dataBermasalah.add(String.format("Mahasiswa: %-14s | Batalkan: %s", namaKandidat, e.getMessage()));
                 } catch (Exception e) {
-                    System.out.println("Skip baris bermasalah pada data: " + data[0] + " | Error: " + e.getMessage());
+                    dataBermasalah.add(String.format("Mahasiswa: %-14s | Batalkan: Error tidak diketahui (%s)", namaKandidat, e.getMessage()));
                 }
             }
 
@@ -272,13 +323,30 @@ public class sistemAlokasiBeasiswa {
             return;
         }
 
-        // Tampilkan Hasil Pemrosesan Urutan Prioritas Penerima
-        System.out.println("\n=================================== HASIL SELEKSI ALOKASI BEASISWA (MAX HEAP) ===================================");
-        int rank = 1;
-        while (!heapAlokasi.isEmpty()) {
-            System.out.println(String.format("%-2d. %s", rank, heapAlokasi.extractMax()));
-            rank++;
+        // 1. TAMPILKAN HASIL SELEKSI (MAHASISWA VALID)
+        System.out.println("=================================== HASIL SELEKSI ALOKASI BEASISWA (MAX HEAP) ===================================");
+        if (heapAlokasi.isEmpty()) {
+            System.out.println("Tidak ada mahasiswa penerima beasiswa yang memenuhi kriteria data valid.");
+        } else {
+            int rank = 1;
+            while (!heapAlokasi.isEmpty()) {
+                System.out.println(String.format("%-2d. %s", rank, heapAlokasi.extractMax()));
+                rank++;
+            }
         }
+        
+        // 2. TAMPILKAN DAFTAR DATA MAHASISWA TIDAK VALID / ANOMALI
+        System.out.println("\n=================================== DAFTAR DATA MAHASISWA TIDAK VALID (ANOMALI) =================================");
+        if (dataBermasalah.isEmpty()) {
+            System.out.println("Bersih! Tidak ditemukan data anomali di dalam file CSV.");
+        } else {
+            int nomor = 1;
+            for (String logError : dataBermasalah) {
+                System.out.println(String.format("[%d] %s", nomor, logError));
+                nomor++;
+            }
+        }
+        System.out.println("=================================================================================================================");
     }
 }
 // tolong dikondisikan
